@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina5_9" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14490.49"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="TestActionSheetTableViewCell" id="UJ7-zD-hR0" customClass="TestActionSheetTableViewCell" customModule="BottomSheetDraggable" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="414" height="44"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="UJ7-zD-hR0" id="GZb-DF-BBh">
+                <rect key="frame" x="0.0" y="0.0" width="414" height="43.666666666666664"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gGt-Bt-3WO">
+                        <rect key="frame" x="186.33333333333334" y="11.333333333333336" width="41.666666666666657" height="21"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                </subviews>
+                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                <constraints>
+                    <constraint firstItem="gGt-Bt-3WO" firstAttribute="centerX" secondItem="GZb-DF-BBh" secondAttribute="centerX" id="ArM-6e-8eV"/>
+                    <constraint firstItem="gGt-Bt-3WO" firstAttribute="top" secondItem="GZb-DF-BBh" secondAttribute="top" constant="11.33" id="NoO-t6-86O"/>
+                    <constraint firstItem="gGt-Bt-3WO" firstAttribute="centerY" secondItem="GZb-DF-BBh" secondAttribute="centerY" id="jV7-hD-kS3"/>
+                    <constraint firstAttribute="bottom" secondItem="gGt-Bt-3WO" secondAttribute="bottom" constant="11.33" id="k5L-gp-HEe"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections>
+                <outlet property="cellLabel" destination="gGt-Bt-3WO" id="rUb-sZ-Cdp"/>
+            </connections>
+            <point key="canvasLocation" x="322" y="-265"/>
+        </tableViewCell>
+    </objects>
+</document>
