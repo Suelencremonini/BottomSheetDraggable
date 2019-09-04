@@ -25,7 +25,7 @@ class ActionSheetTableClientViewController: ActionSheet2ViewController {
     func setTableViewOnActionSheetView() {
         actionSheetView.addSubview(tableView)
         
-        tableView.dataSource = backgroundViewController as? UITableViewDataSource
+//        tableView.dataSource = backgroundViewController as? UITableViewDataSource
         tableView.delegate = self
         
 //        backgroundViewController.delegate?.actionSheetBackgroundRegisterCellsForTableView(tableView)

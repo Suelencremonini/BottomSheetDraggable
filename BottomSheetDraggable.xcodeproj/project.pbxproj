@@ -7,11 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5F0E2ADA23203CDD006CB3BA /* ActionSheetAnimatedTransitioning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F0E2AD923203CDC006CB3BA /* ActionSheetAnimatedTransitioning.swift */; };
 		5F209E26231E91050092B002 /* ActionSheet2ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F209E25231E91050092B002 /* ActionSheet2ViewController.swift */; };
-		5F209E28231EDBBD0092B002 /* RoundedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F209E27231EDBBD0092B002 /* RoundedView.swift */; };
 		5F4651F6231966DD00DB682D /* ActionSheetBackgroundViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F4651F5231966DD00DB682D /* ActionSheetBackgroundViewController.swift */; };
 		5F5C35E2231D4F2E0021EF8F /* ActionSheetTableClientViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F5C35E1231D4F2E0021EF8F /* ActionSheetTableClientViewController.swift */; };
-		5F8947C72315870B00B91DF6 /* ActionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F8947C62315870B00B91DF6 /* ActionSheetViewController.swift */; };
 		5F8947C923159C5900B91DF6 /* TestBackgroundViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F8947C823159C5900B91DF6 /* TestBackgroundViewController.swift */; };
 		5F8947CB23159C6D00B91DF6 /* TestActionSheetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F8947CA23159C6D00B91DF6 /* TestActionSheetViewController.swift */; };
 		5F8947CD2315CA0000B91DF6 /* TestActionSheetViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5F8947CC2315CA0000B91DF6 /* TestActionSheetViewController.xib */; };
@@ -44,11 +43,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5F0E2AD923203CDC006CB3BA /* ActionSheetAnimatedTransitioning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetAnimatedTransitioning.swift; sourceTree = "<group>"; };
 		5F209E25231E91050092B002 /* ActionSheet2ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheet2ViewController.swift; sourceTree = "<group>"; };
-		5F209E27231EDBBD0092B002 /* RoundedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedView.swift; sourceTree = "<group>"; };
 		5F4651F5231966DD00DB682D /* ActionSheetBackgroundViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetBackgroundViewController.swift; sourceTree = "<group>"; };
 		5F5C35E1231D4F2E0021EF8F /* ActionSheetTableClientViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetTableClientViewController.swift; sourceTree = "<group>"; };
-		5F8947C62315870B00B91DF6 /* ActionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionSheetViewController.swift; sourceTree = "<group>"; };
 		5F8947C823159C5900B91DF6 /* TestBackgroundViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestBackgroundViewController.swift; sourceTree = "<group>"; };
 		5F8947CA23159C6D00B91DF6 /* TestActionSheetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestActionSheetViewController.swift; sourceTree = "<group>"; };
 		5F8947CC2315CA0000B91DF6 /* TestActionSheetViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TestActionSheetViewController.xib; sourceTree = "<group>"; };
@@ -97,10 +95,9 @@
 		5FB967BD2316AF7000868CF6 /* BottomSheet */ = {
 			isa = PBXGroup;
 			children = (
+				5F0E2AD923203CDC006CB3BA /* ActionSheetAnimatedTransitioning.swift */,
 				5F4651F5231966DD00DB682D /* ActionSheetBackgroundViewController.swift */,
-				5F209E27231EDBBD0092B002 /* RoundedView.swift */,
 				5F209E25231E91050092B002 /* ActionSheet2ViewController.swift */,
-				5F8947C62315870B00B91DF6 /* ActionSheetViewController.swift */,
 				5F5C35E1231D4F2E0021EF8F /* ActionSheetTableClientViewController.swift */,
 				5FB967BE2316AF8C00868CF6 /* Test */,
 			);
@@ -316,12 +313,11 @@
 				5F4651F6231966DD00DB682D /* ActionSheetBackgroundViewController.swift in Sources */,
 				5F209E26231E91050092B002 /* ActionSheet2ViewController.swift in Sources */,
 				5F5C35E2231D4F2E0021EF8F /* ActionSheetTableClientViewController.swift in Sources */,
-				5F8947C72315870B00B91DF6 /* ActionSheetViewController.swift in Sources */,
 				5F8947D12315CACC00B91DF6 /* TestActionSheetTableViewCell.swift in Sources */,
 				5F8947C923159C5900B91DF6 /* TestBackgroundViewController.swift in Sources */,
 				5F8947CB23159C6D00B91DF6 /* TestActionSheetViewController.swift in Sources */,
-				5F209E28231EDBBD0092B002 /* RoundedView.swift in Sources */,
 				5FD99207231463C20057B272 /* AppDelegate.swift in Sources */,
+				5F0E2ADA23203CDD006CB3BA /* ActionSheetAnimatedTransitioning.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
