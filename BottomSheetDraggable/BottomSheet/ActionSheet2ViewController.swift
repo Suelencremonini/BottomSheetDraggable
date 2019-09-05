@@ -37,7 +37,6 @@ class ActionSheet2ViewController: UIViewController {
     var currentActionSheetPosition: ActionSheetPosition2 = .partiallyRevealed
     
     private let actionSheetView = UIView()
-    private let topBarView = UIView()
     private let topView = UIView()
     
     private var panGestureAnimator: UIViewPropertyAnimator!
@@ -86,9 +85,9 @@ private extension ActionSheet2ViewController {
     }
     
     func setupDismiss() {
-        let tapGesture = UITapGestureRecognizer()
-        tapGesture.addTarget(self, action: #selector(dismissActionSheet(recognizer:)))
-        view.addGestureRecognizer(tapGesture)
+        let dismissGesture = UITapGestureRecognizer()
+        dismissGesture.addTarget(self, action: #selector(dismissActionSheet(recognizer:)))
+        view.addGestureRecognizer(dismissGesture)
     }
     
     @objc func dismissActionSheet(recognizer: UIPanGestureRecognizer) {
@@ -98,12 +97,6 @@ private extension ActionSheet2ViewController {
     func setupTransition() {
         transitioningDelegate = self
         transition = ActionSheetAnimatedTransitioning(dimmedView: backgroundViewController.view)
-    }
-    
-    func addTopViewGestureRecognizer() {
-        let tapOrPanRecognizer = InstantPanGestureRecognizer()
-        tapOrPanRecognizer.addTarget(self, action: #selector(panGesture(recognizer:)))
-        topView.addGestureRecognizer(tapOrPanRecognizer)
     }
     
     func setupActionSheetView() {
@@ -131,7 +124,7 @@ private extension ActionSheet2ViewController {
         
         setupTopViewConstraints()
         setupTopGrayBarView()
-        addTopViewGestureRecognizer()
+        addInstantPanGestureRecognizer(for: topView)
     }
     
     func setupTopViewConstraints() {
@@ -143,24 +136,30 @@ private extension ActionSheet2ViewController {
     }
     
     func setupTopGrayBarView() {
-        topBarView.backgroundColor = .gray
-        topBarView.layer.cornerRadius = 5
+        let topGrayBarView = UIView()
+        topGrayBarView.backgroundColor = .gray
+        topGrayBarView.layer.cornerRadius = 5
         
-        topView.addSubview(topBarView)
-        setupTopGrayBarConstraints()
+        topView.addSubview(topGrayBarView)
+        setupTopGrayBarConstraints(topGrayBarView)
     }
     
-    func setupTopGrayBarConstraints() {
-        topBarView.translatesAutoresizingMaskIntoConstraints = false
-        topBarView.centerXAnchor.constraint(equalTo: topView.centerXAnchor).isActive = true
-        topBarView.centerYAnchor.constraint(equalTo: topView.centerYAnchor).isActive = true
-        topBarView.widthAnchor.constraint(equalToConstant: 50).isActive = true
-        topBarView.heightAnchor.constraint(equalToConstant: 3).isActive = true
+    func setupTopGrayBarConstraints(_ topGrayBarView: UIView) {
+        topGrayBarView.translatesAutoresizingMaskIntoConstraints = false
+        topGrayBarView.centerXAnchor.constraint(equalTo: topView.centerXAnchor).isActive = true
+        topGrayBarView.centerYAnchor.constraint(equalTo: topView.centerYAnchor).isActive = true
+        topGrayBarView.widthAnchor.constraint(equalToConstant: 50).isActive = true
+        topGrayBarView.heightAnchor.constraint(equalToConstant: 3).isActive = true
     }
     
     func setupInnerView() {
         actionSheetView.addSubview(innerView)
         
+        setupInnerViewConstraints()
+        addInstantPanGestureRecognizer(for: innerView)
+    }
+    
+    func setupInnerViewConstraints() {
         innerView.translatesAutoresizingMaskIntoConstraints = false
         innerView.leadingAnchor.constraint(equalTo: actionSheetView.leadingAnchor).isActive = true
         innerView.trailingAnchor.constraint(equalTo: actionSheetView.trailingAnchor).isActive = true
@@ -169,6 +168,12 @@ private extension ActionSheet2ViewController {
         
         innerViewHeightConstraint = innerView.heightAnchor.constraint(equalToConstant: getInnerViewHeight(forPosition: currentActionSheetPosition))
         innerViewHeightConstraint.isActive = true
+    }
+    
+    func addInstantPanGestureRecognizer(for view: UIView) {
+        let tapRecognizer = InstantPanGestureRecognizer()
+        tapRecognizer.addTarget(self, action: #selector(panGesture(recognizer:)))
+        view.addGestureRecognizer(tapRecognizer)
     }
 }
 
