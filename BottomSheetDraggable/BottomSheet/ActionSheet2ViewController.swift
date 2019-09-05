@@ -26,37 +26,32 @@ enum ActionSheetPosition2 {
             return .partiallyRevealed
         }
     }
-    
-    var height: CGFloat {
-        switch self {
-        case .complete:
-            return UIScreen.main.bounds.height * 0.4
-        case .partiallyRevealed:
-            return UIScreen.main.bounds.height * 0.3
-        case .fullScreen:
-            return UIScreen.main.bounds.height
-        }
-    }
 }
 
 class ActionSheet2ViewController: UIViewController {
     
-    let actionSheetView = UIView()
-
+    let innerView = UIView()
+    
+    var backgroundViewController: ActionSheetBackgroundViewController!
+    
     var currentActionSheetPosition: ActionSheetPosition2 = .partiallyRevealed
-
-    var actionSheetHeightConstraint: NSLayoutConstraint!
+    
+    private let actionSheetView = UIView()
+    private let topBarView = UIView()
+    private let topView = UIView()
     
     private var panGestureAnimator: UIViewPropertyAnimator!
-    private var backgroundViewController: UIViewController!
     private var transition: ActionSheetAnimatedTransitioning!
+    private var innerViewHeightConstraint: NSLayoutConstraint!
     
-    required public init(backgroundViewController: UIViewController) {
+    required public init(backgroundViewController: ActionSheetBackgroundViewController) {
         super.init(nibName: nil, bundle: nil)
         
         self.backgroundViewController = backgroundViewController
         
         setupActionSheetView()
+        setupTopView()
+        setupInnerView()
         setupTransition()
         setupPresent()
         setupDismiss()
@@ -65,8 +60,25 @@ class ActionSheet2ViewController: UIViewController {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    func getInnerViewHeight(forPosition position: ActionSheetPosition2) -> CGFloat {
+        switch position {
+        case .complete:
+            return UIScreen.main.bounds.height * 0.4
+        case .partiallyRevealed:
+            return UIScreen.main.bounds.height * 0.3
+        case .fullScreen:
+            return UIScreen.main.bounds.height - UIApplication.shared.statusBarFrame.height - topView.bounds.height
+        }
+    }
+    
+    func resizeInnerViewHeight() {
+        innerViewHeightConstraint.constant = getInnerViewHeight(forPosition: currentActionSheetPosition)
+        view.layoutIfNeeded()
+    }
 }
 
+// MARK: - Deals with the setup of the views
 private extension ActionSheet2ViewController {
     func setupPresent() {
         modalPresentationStyle = .overFullScreen
@@ -79,39 +91,25 @@ private extension ActionSheet2ViewController {
         view.addGestureRecognizer(tapGesture)
     }
     
+    @objc func dismissActionSheet(recognizer: UIPanGestureRecognizer) {
+        dismiss(animated: true, completion: nil)
+    }
+    
     func setupTransition() {
         transitioningDelegate = self
         transition = ActionSheetAnimatedTransitioning(dimmedView: backgroundViewController.view)
     }
     
-    @objc func dismissActionSheet(recognizer: UIPanGestureRecognizer) {
-        dismiss(animated: true, completion: nil)
+    func addTopViewGestureRecognizer() {
+        let tapOrPanRecognizer = InstantPanGestureRecognizer()
+        tapOrPanRecognizer.addTarget(self, action: #selector(panGesture(recognizer:)))
+        topView.addGestureRecognizer(tapOrPanRecognizer)
     }
     
     func setupActionSheetView() {
         view.addSubview(actionSheetView)
-        
-        setupActionSheetGestureRecognizer()
-        setupActionSheetConstraints()
         setupActionSheetLayout()
-    }
-    
-    func setupActionSheetGestureRecognizer() {
-        //there is no animation when the current position is "complete" because we assumed that the whole content fits the view
-        if currentActionSheetPosition != .complete {
-            let tapOrPanRecognizer = InstantPanGestureRecognizer2()
-            tapOrPanRecognizer.addTarget(self, action: #selector(panGesture(recognizer:)))
-            actionSheetView.addGestureRecognizer(tapOrPanRecognizer)
-        }
-    }
-    
-    func setupActionSheetConstraints() {
-        actionSheetView.translatesAutoresizingMaskIntoConstraints = false
-        actionSheetView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        actionSheetView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        actionSheetView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
-        actionSheetHeightConstraint = actionSheetView.heightAnchor.constraint(equalToConstant: currentActionSheetPosition.height)
-        actionSheetHeightConstraint.isActive = true
+        setupActionSheetConstraints()
     }
     
     func setupActionSheetLayout() {
@@ -119,23 +117,63 @@ private extension ActionSheet2ViewController {
         actionSheetView.backgroundColor = .white
         actionSheetView.layer.cornerRadius = 20.0
         actionSheetView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        addTopBar()
     }
     
-    func addTopBar() {
-        let topBar = UIView()
-        topBar.backgroundColor = .gray
-        topBar.layer.cornerRadius = 5
-        
-        actionSheetView.addSubview(topBar)
-        
-        topBar.translatesAutoresizingMaskIntoConstraints = false
-        topBar.centerXAnchor.constraint(equalTo: actionSheetView.centerXAnchor).isActive = true
-        topBar.widthAnchor.constraint(equalToConstant: 50).isActive = true
-        topBar.heightAnchor.constraint(equalToConstant: 3).isActive = true
-        topBar.topAnchor.constraint(equalTo: actionSheetView.topAnchor, constant: 20).isActive = true
+    func setupActionSheetConstraints() {
+        actionSheetView.translatesAutoresizingMaskIntoConstraints = false
+        actionSheetView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        actionSheetView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        actionSheetView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
     }
     
+    func setupTopView() {
+        actionSheetView.addSubview(topView)
+        
+        setupTopViewConstraints()
+        setupTopGrayBarView()
+        addTopViewGestureRecognizer()
+    }
+    
+    func setupTopViewConstraints() {
+        topView.translatesAutoresizingMaskIntoConstraints = false
+        topView.leadingAnchor.constraint(equalTo: actionSheetView.leadingAnchor).isActive = true
+        topView.trailingAnchor.constraint(equalTo: actionSheetView.trailingAnchor).isActive = true
+        topView.topAnchor.constraint(equalTo: actionSheetView.topAnchor).isActive = true
+        topView.heightAnchor.constraint(equalToConstant: 40).isActive = true
+    }
+    
+    func setupTopGrayBarView() {
+        topBarView.backgroundColor = .gray
+        topBarView.layer.cornerRadius = 5
+        
+        topView.addSubview(topBarView)
+        setupTopGrayBarConstraints()
+    }
+    
+    func setupTopGrayBarConstraints() {
+        topBarView.translatesAutoresizingMaskIntoConstraints = false
+        topBarView.centerXAnchor.constraint(equalTo: topView.centerXAnchor).isActive = true
+        topBarView.centerYAnchor.constraint(equalTo: topView.centerYAnchor).isActive = true
+        topBarView.widthAnchor.constraint(equalToConstant: 50).isActive = true
+        topBarView.heightAnchor.constraint(equalToConstant: 3).isActive = true
+    }
+    
+    func setupInnerView() {
+        actionSheetView.addSubview(innerView)
+        
+        innerView.translatesAutoresizingMaskIntoConstraints = false
+        innerView.leadingAnchor.constraint(equalTo: actionSheetView.leadingAnchor).isActive = true
+        innerView.trailingAnchor.constraint(equalTo: actionSheetView.trailingAnchor).isActive = true
+        innerView.bottomAnchor.constraint(equalTo: actionSheetView.bottomAnchor).isActive = true
+        innerView.topAnchor.constraint(equalTo: topView.bottomAnchor).isActive = true
+        
+        innerViewHeightConstraint = innerView.heightAnchor.constraint(equalToConstant: getInnerViewHeight(forPosition: currentActionSheetPosition))
+        innerViewHeightConstraint.isActive = true
+    }
+}
+
+// MARK: - Deals with the animation events
+private extension ActionSheet2ViewController {
     func animateTransitionIfNeeded() {
         let state = currentActionSheetPosition.nextPosition
         
@@ -143,9 +181,9 @@ private extension ActionSheet2ViewController {
             //add animation based on the action sheet position. The targeted height is the height of the next position
             switch state {
             case .partiallyRevealed:
-                self.actionSheetHeightConstraint.constant = ActionSheetPosition2.partiallyRevealed.height
+                self.innerViewHeightConstraint.constant = self.getInnerViewHeight(forPosition: .partiallyRevealed)
             case .fullScreen:
-                self.actionSheetHeightConstraint.constant = ActionSheetPosition2.fullScreen.height
+                self.innerViewHeightConstraint.constant = self.getInnerViewHeight(forPosition: .fullScreen)
             default:
                 break
             }
@@ -160,9 +198,9 @@ private extension ActionSheet2ViewController {
             //Reset the constraints. Necessary because when the user changes the direction of the pan gesture during the animation, the ending position won't be the expected one, it'll be the current one
             switch self.currentActionSheetPosition {
             case .partiallyRevealed:
-                self.actionSheetHeightConstraint.constant = ActionSheetPosition2.partiallyRevealed.height
+                self.innerViewHeightConstraint.constant = self.getInnerViewHeight(forPosition: .partiallyRevealed)
             case .fullScreen:
-                self.actionSheetHeightConstraint.constant = ActionSheetPosition2.fullScreen.height
+                self.innerViewHeightConstraint.constant = self.getInnerViewHeight(forPosition: .fullScreen)
             default:
                 break
             }
@@ -171,17 +209,19 @@ private extension ActionSheet2ViewController {
     }
     
     @objc func panGesture(recognizer: UIPanGestureRecognizer) {
-        switch recognizer.state {
-        case .began:
-            animateTransitionIfNeeded()
-            // pause the animation, since the next event may be a pan changed
-            panGestureAnimator.pauseAnimation()
-        case .changed:
-            panGestureChanged(translation: recognizer.translation(in: actionSheetView))
-        case .ended:
-            panGestureEnded(yVelocity: recognizer.velocity(in: actionSheetView).y)
-        default:
-            break
+        if currentActionSheetPosition != .complete {
+            switch recognizer.state {
+            case .began:
+                animateTransitionIfNeeded()
+                // pause the animation, since the next event may be a pan changed
+                panGestureAnimator.pauseAnimation()
+            case .changed:
+                panGestureChanged(translation: recognizer.translation(in: actionSheetView))
+            case .ended:
+                panGestureEnded(yVelocity: recognizer.velocity(in: actionSheetView).y)
+            default:
+                break
+            }
         }
     }
     
@@ -232,14 +272,6 @@ extension ActionSheet2ViewController: UIViewControllerTransitioningDelegate {
 
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         return transition
-    }
-}
-
-/// A pan gesture that enters into the 'began' state on touch down instead of waiting for a touches moved event
-class InstantPanGestureRecognizer2: UIPanGestureRecognizer {
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
-        super.touchesBegan(touches, with: event)
-        state = UIGestureRecognizer.State.began
     }
 }
 

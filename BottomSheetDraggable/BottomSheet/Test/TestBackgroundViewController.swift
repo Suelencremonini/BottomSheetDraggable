@@ -8,24 +8,25 @@
 
 import UIKit
 
-class TestBackgroundViewController: UIViewController {
+class TestBackgroundViewController: ActionSheetBackgroundViewController {
 
     private var listCell: [TestActionSheetTableViewCell] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
-//        delegate = self
+        delegate = self
     }
     
     @IBAction func buttonTapped(_ sender: Any) {
         var i = 0
-        while i < 3 {
+        listCell = []
+        while i < 5 {
             let cell = TestActionSheetTableViewCell()
             listCell.append(cell)
             i += 1
         }
-        ActionSheet2ViewController(backgroundViewController: self)
-//        ActionSheetTableClientViewController(backgroundViewController: self)
+//        ActionSheet2ViewController(backgroundViewController: self)
+        ActionSheetTableViewController(backgroundViewController: self)
     }
 }
 
