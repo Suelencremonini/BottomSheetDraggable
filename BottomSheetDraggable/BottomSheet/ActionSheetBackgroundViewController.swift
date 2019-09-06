@@ -10,6 +10,7 @@ import UIKit
 
 protocol ActionSheetBackgroundDelegate: class {
     func actionSheetBackgroundRegisterCellsForTableView(_ tableView: UITableView)
+    func actionSheetBackgroundGetNumberOfCells(_ tableView: UITableView) -> Int
 }
 
 class ActionSheetBackgroundViewController: UIViewController {

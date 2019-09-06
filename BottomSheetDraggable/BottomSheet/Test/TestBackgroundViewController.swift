@@ -20,13 +20,13 @@ class TestBackgroundViewController: ActionSheetBackgroundViewController {
     @IBAction func buttonTapped(_ sender: Any) {
         var i = 0
         listCell = []
-        while i < 50 {
+        while i < 30 {
             let cell = TestActionSheetTableViewCell()
             listCell.append(cell)
             i += 1
         }
-//        ActionSheet2ViewController(backgroundViewController: self)
-        ActionSheetTableViewController(backgroundViewController: self)
+//        ActionSheet2ViewController().start(on: self)
+        ActionSheetTableViewController().start(on: self)
     }
 }
 
@@ -43,6 +43,10 @@ extension TestBackgroundViewController: UITableViewDataSource {
 }
 
 extension TestBackgroundViewController: ActionSheetBackgroundDelegate {
+    func actionSheetBackgroundGetNumberOfCells(_ tableView: UITableView) -> Int {
+        return listCell.count
+    }
+    
     func actionSheetBackgroundRegisterCellsForTableView(_ tableView: UITableView) {
         tableView.register(UINib(nibName: "TestActionSheetTableViewCell", bundle: nil), forCellReuseIdentifier: "TestActionSheetTableViewCell")
     }

@@ -13,17 +13,16 @@ class ActionSheetTableViewController: ActionSheet2ViewController {
     private var tableView = UITableView()
     private var heightForActionSheet: CGFloat = 0
     private var reloadedSuperView = false
-    
-    override var shouldDisableTapGestureInInnerView: Bool {
-        get {
-            return true
-        }
-    }
-    
+    private var numberOfCells = 0
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
         setupTableView()
+        currentActionSheetPosition = numberOfCells > 3 ? .partiallyRevealed : .complete
+        
+        innerViewPanRecognizer.delegate = self
+        innerViewTapRecognizer.delegate = self
     }
     
     override func viewDidLayoutSubviews() {
@@ -48,12 +47,12 @@ private extension ActionSheetTableViewController {
     func setupTableView() {
         innerView.addSubview(tableView)
         setTableViewConstraints()
-        tableView.isScrollEnabled = false
         
         tableView.dataSource = backgroundViewController as? UITableViewDataSource
         tableView.delegate = self
         
         backgroundViewController.delegate?.actionSheetBackgroundRegisterCellsForTableView(tableView)
+        numberOfCells = backgroundViewController.delegate?.actionSheetBackgroundGetNumberOfCells(tableView) ?? 0
     }
     
     func setTableViewConstraints() {
@@ -67,16 +66,52 @@ private extension ActionSheetTableViewController {
 
 extension ActionSheetTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        if tableView.numberOfRows(inSection: indexPath.section) > 3 {
-            currentActionSheetPosition = .partiallyRevealed
+        if numberOfCells > 3 {
             if indexPath.row < 2 {
                  heightForActionSheet += cell.bounds.height
             } else if indexPath.row == 2 {
                  heightForActionSheet += cell.bounds.height/2
             }
         } else {
-            currentActionSheetPosition = .complete
             heightForActionSheet += cell.bounds.height
         }
     }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print(indexPath.row)
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate - refuse gestures when the action sheet position is complete or partially visible and the user is dragging the table down
+extension ActionSheetTableViewController {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        if gestureRecognizer.isKind(of: UIPanGestureRecognizer.self) {
+            let gesture = gestureRecognizer as! UIPanGestureRecognizer
+            let isDraggingDown = gesture.velocity(in: view).y > 0
+            
+            if currentActionSheetPosition == .partiallyRevealed || (currentActionSheetPosition == .fullScreen && isDraggingDown && tableView.contentOffset.y == 0) {
+                tableView.isScrollEnabled = false
+            } else {
+                tableView.isScrollEnabled = true
+            }
+        }
+        return false
+    }
+    
+//    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+//        let isTouchInInnerView = touch.view?.isDescendant(of: innerView) ?? false
+//
+//        let isPanGestureRecognizer = gestureRecognizer.isKind(of: UIPanGestureRecognizer.self)
+//        let isTapGestureRecognizer = gestureRecognizer.isKind(of: UITapGestureRecognizer.self)
+//
+//        let disablePanInInnerView = isPanGestureRecognizer && isTouchInInnerView //&& shouldDisablePanGestureInInnerView
+//        let disableTapInInnerView = isTapGestureRecognizer && isTouchInInnerView //&& shouldDisableTapGestureInInnerView
+//
+//        let disableGestureForPositionComplete = currentActionSheetPosition == .complete
+//
+//        if  disablePanInInnerView || disableTapInInnerView || disableGestureForPositionComplete {
+//            return false
+//        }
+//        return true
+//    }
 }
