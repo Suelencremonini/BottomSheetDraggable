@@ -14,6 +14,12 @@ class ActionSheetTableViewController: ActionSheet2ViewController {
     private var heightForActionSheet: CGFloat = 0
     private var reloadedSuperView = false
     
+    override var shouldDisableTapGestureInInnerView: Bool {
+        get {
+            return true
+        }
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -42,6 +48,7 @@ private extension ActionSheetTableViewController {
     func setupTableView() {
         innerView.addSubview(tableView)
         setTableViewConstraints()
+        tableView.isScrollEnabled = false
         
         tableView.dataSource = backgroundViewController as? UITableViewDataSource
         tableView.delegate = self
@@ -73,27 +80,3 @@ extension ActionSheetTableViewController: UITableViewDelegate {
         }
     }
 }
-
-extension ActionSheetTableViewController: UIScrollViewDelegate {
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        print("scrollViewDidEndDragging")
-    }
-    
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        print("scrollViewDidScroll")
-    }
-    
-    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        print("scrollViewWillBeginDragging")
-    }
-    
-    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        print("scrollViewWillEndDragging")
-    }
-}
-
-//extension ActionSheetTableViewController: UIGestureRecognizerDelegate {
-//    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-//        return true
-//    }
-//}

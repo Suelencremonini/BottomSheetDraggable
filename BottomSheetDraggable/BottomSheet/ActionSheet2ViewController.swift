@@ -36,6 +36,18 @@ class ActionSheet2ViewController: UIViewController {
     
     var currentActionSheetPosition: ActionSheetPosition2 = .partiallyRevealed
     
+    var shouldDisableTapGestureInInnerView: Bool {
+        get {
+            return false
+        }
+    }
+    
+    var shouldDisablePanGestureInInnerView: Bool {
+        get {
+            return false
+        }
+    }
+    
     private let actionSheetView = UIView()
     private let topView = UIView()
     
@@ -60,6 +72,13 @@ class ActionSheet2ViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    /// should be orridden to give the component a custom height based on the position of the action sheet. The default heights are:
+    /// complete -> 40% of the total screen height
+    /// partiallyRevealed -> 30% of the total screen height
+    /// fullScreen -> the maximum possible height of the innerView (total screen height minus the status bar height minus the topView height)
+    ///
+    /// - Parameter position: the position of the action sheet: complete, partiallyRevealed, fullScreen
+    /// - Returns: returns the height for the specified position
     func getInnerViewHeight(forPosition position: ActionSheetPosition2) -> CGFloat {
         switch position {
         case .complete:
@@ -71,6 +90,7 @@ class ActionSheet2ViewController: UIViewController {
         }
     }
     
+    /// if the height changes in the client of the component, calls this method to update the views with the new one
     func resizeInnerViewHeight() {
         innerViewHeightConstraint.constant = getInnerViewHeight(forPosition: currentActionSheetPosition)
         view.layoutIfNeeded()
@@ -86,6 +106,7 @@ private extension ActionSheet2ViewController {
     
     func setupDismiss() {
         let dismissGesture = UITapGestureRecognizer()
+        dismissGesture.delegate = self
         dismissGesture.addTarget(self, action: #selector(dismissActionSheet(recognizer:)))
         view.addGestureRecognizer(dismissGesture)
     }
@@ -124,7 +145,7 @@ private extension ActionSheet2ViewController {
         
         setupTopViewConstraints()
         setupTopGrayBarView()
-        addInstantPanGestureRecognizer(for: topView)
+        addGestureRecognizers(for: topView)
     }
     
     func setupTopViewConstraints() {
@@ -156,7 +177,7 @@ private extension ActionSheet2ViewController {
         actionSheetView.addSubview(innerView)
         
         setupInnerViewConstraints()
-        addInstantPanGestureRecognizer(for: innerView)
+        addGestureRecognizers(for: innerView)
     }
     
     func setupInnerViewConstraints() {
@@ -170,10 +191,18 @@ private extension ActionSheet2ViewController {
         innerViewHeightConstraint.isActive = true
     }
     
-    func addInstantPanGestureRecognizer(for view: UIView) {
-        let tapRecognizer = InstantPanGestureRecognizer()
-        tapRecognizer.addTarget(self, action: #selector(panGesture(recognizer:)))
+    func addGestureRecognizers(for view: UIView) {
+        let tapRecognizer = UITapGestureRecognizer()
+        let panRecognizer = UIPanGestureRecognizer()
+
+        panRecognizer.delegate = self
+        tapRecognizer.delegate = self
+
+        tapRecognizer.addTarget(self, action: #selector(tapGesture(recognizer:)))
+        panRecognizer.addTarget(self, action: #selector(panGesture(recognizer:)))
+
         view.addGestureRecognizer(tapRecognizer)
+        view.addGestureRecognizer(panRecognizer)
     }
 }
 
@@ -196,37 +225,43 @@ private extension ActionSheet2ViewController {
         })
         
         panGestureAnimator.addCompletion { animationStatus in
-            //When the animation ends, sets the current position of the action sheet to the next state. The animation ends only when its direction IS NOT changed during the animation
-            if animationStatus == .end {
-                self.currentActionSheetPosition = state
-            }
-            //Reset the constraints. Necessary because when the user changes the direction of the pan gesture during the animation, the ending position won't be the expected one, it'll be the current one
-            switch self.currentActionSheetPosition {
-            case .partiallyRevealed:
-                self.innerViewHeightConstraint.constant = self.getInnerViewHeight(forPosition: .partiallyRevealed)
-            case .fullScreen:
-                self.innerViewHeightConstraint.constant = self.getInnerViewHeight(forPosition: .fullScreen)
-            default:
-                break
-            }
+            self.panGestureAnimatorCompletion(animationStatus: animationStatus, state: state)
         }
         panGestureAnimator.startAnimation()
     }
     
+    func panGestureAnimatorCompletion(animationStatus: UIViewAnimatingPosition, state: ActionSheetPosition2) {
+        //When the animation ends, sets the current position of the action sheet to the next state
+        if animationStatus == .end {
+            self.currentActionSheetPosition = state
+        }
+        //Reset the constraints. Necessary because when the user changes the direction of the pan gesture during the animation, the ending position won't be the expected one, it'll be the current one
+        switch self.currentActionSheetPosition {
+        case .partiallyRevealed:
+            self.innerViewHeightConstraint.constant = self.getInnerViewHeight(forPosition: .partiallyRevealed)
+        case .fullScreen:
+            self.innerViewHeightConstraint.constant = self.getInnerViewHeight(forPosition: .fullScreen)
+        default:
+            break
+        }
+    }
+    
+    @objc func tapGesture(recognizer: UITapGestureRecognizer) {
+        animateTransitionIfNeeded()
+    }
+    
     @objc func panGesture(recognizer: UIPanGestureRecognizer) {
-        if currentActionSheetPosition != .complete {
-            switch recognizer.state {
-            case .began:
-                animateTransitionIfNeeded()
-                // pause the animation, since the next event may be a pan changed
-                panGestureAnimator.pauseAnimation()
-            case .changed:
-                panGestureChanged(translation: recognizer.translation(in: actionSheetView))
-            case .ended:
-                panGestureEnded(yVelocity: recognizer.velocity(in: actionSheetView).y)
-            default:
-                break
-            }
+        switch recognizer.state {
+        case .began:
+            animateTransitionIfNeeded()
+            // pause the animation, since the next event may be a pan changed
+            panGestureAnimator.pauseAnimation()
+        case .changed:
+            panGestureChanged(translation: recognizer.translation(in: actionSheetView))
+        case .ended:
+            panGestureEnded(yVelocity: recognizer.velocity(in: actionSheetView).y)
+        default:
+            break
         }
     }
     
@@ -277,6 +312,27 @@ extension ActionSheet2ViewController: UIViewControllerTransitioningDelegate {
 
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         return transition
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate - prevents the action sheet from dismissing when the user taps inside the inner view. It also prevents the instant pan gesture to be received when the action sheet position is complete
+extension ActionSheet2ViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        let isTouchInInnerView = touch.view?.isDescendant(of: innerView) ?? false
+
+        let isPanGestureRecognizer = gestureRecognizer.isKind(of: UIPanGestureRecognizer.self)
+        let isTapGestureRecognizer = gestureRecognizer.isKind(of: UITapGestureRecognizer.self)
+        let isInstantPanGestureRecognizer = gestureRecognizer.isKind(of: InstantPanGestureRecognizer.self)
+
+        let disablePanInInnerView = isPanGestureRecognizer && isTouchInInnerView && shouldDisablePanGestureInInnerView
+        let disableTapInInnerView = isTapGestureRecognizer && isTouchInInnerView && shouldDisableTapGestureInInnerView
+
+        let disableInstantPanForPositionComplete = currentActionSheetPosition == .complete && isInstantPanGestureRecognizer
+        
+        if  disablePanInInnerView || disableTapInInnerView || disableInstantPanForPositionComplete {
+            return false
+        }
+        return true
     }
 }
 
