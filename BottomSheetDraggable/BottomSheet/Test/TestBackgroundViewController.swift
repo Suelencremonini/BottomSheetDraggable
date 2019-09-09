@@ -24,7 +24,10 @@ class TestBackgroundViewController: UIViewController {
             listCell.append(cell)
             i += 1
         }
-//        ActionSheet2ViewController().start(on: self)
+//        if let vc = ActionSheet2ViewController(on: self) {
+////            vc.delegate = self
+//            present(vc, animated: true, completion: nil)
+//        }
         if let vc = ActionSheetTableViewController(on: self) {
             vc.delegate = self
             present(vc, animated: true, completion: nil)

@@ -30,23 +30,28 @@ enum ActionSheetPosition2 {
 
 class ActionSheet2ViewController: UIViewController {
     
-    let innerView = UIView()
-    
     var backgroundViewController: UIViewController!
+    
+    let innerView = UIView()
+    let actionSheetView = UIView()
+    let topView = UIView()
     
     var currentActionSheetPosition: ActionSheetPosition2 = .partiallyRevealed
     
-    let innerViewPanRecognizer = UIPanGestureRecognizer()
     var shouldDisablePanGestureInInnerView: Bool {
         get {
             return false
         }
     }
     
-    private let dismissGesture = UITapGestureRecognizer()
+    var scrollView: UIScrollView? = nil {
+        didSet {
+            addScrollViewInsideInnerView()
+        }
+    }
     
-    private let actionSheetView = UIView()
-    private let topView = UIView()
+    private let dismissGesture = UITapGestureRecognizer()
+    private let innerViewPanGesture = UIPanGestureRecognizer()
     
     private var panGestureAnimator: UIViewPropertyAnimator!
     private var transition: ActionSheetAnimatedTransitioning!
@@ -86,15 +91,21 @@ class ActionSheet2ViewController: UIViewController {
         }
     }
     
-    /// if the height changes in the client of the component, calls this method to update the views with the new one
+    /// this method should be called to update the view height when it changes
     func resizeInnerViewHeight() {
-        innerViewHeightConstraint.constant = getInnerViewHeight(forPosition: currentActionSheetPosition)
+        self.innerViewHeightConstraint.constant = self.getInnerViewHeight(forPosition: self.currentActionSheetPosition)
+        
         view.layoutIfNeeded()
     }
 }
 
 // MARK: - Deals with the setup of the views
 private extension ActionSheet2ViewController {
+    func addScrollViewInsideInnerView() {
+        innerViewPanGesture.delegate = self
+        innerView.addSubview(scrollView!)
+    }
+    
     func setupPresent() {
         modalPresentationStyle = .overFullScreen
     }
@@ -136,7 +147,6 @@ private extension ActionSheet2ViewController {
     
     func setupTopView() {
         actionSheetView.addSubview(topView)
-        
         setupTopViewConstraints()
         setupTopGrayBarView()
         addGesturesForTopView()
@@ -180,15 +190,13 @@ private extension ActionSheet2ViewController {
     
     func setupInnerView() {
         actionSheetView.addSubview(innerView)
-        
         setupInnerViewConstraints()
         addPanGestureForInnerView()
     }
     
     func addPanGestureForInnerView() {
-        innerViewPanRecognizer.addTarget(self, action: #selector(panGesture(recognizer:)))
-        
-        innerView.addGestureRecognizer(innerViewPanRecognizer)
+        innerViewPanGesture.addTarget(self, action: #selector(panGesture(recognizer:)))
+        innerView.addGestureRecognizer(innerViewPanGesture)
     }
     
     func setupInnerViewConstraints() {
@@ -313,20 +321,37 @@ extension ActionSheet2ViewController: UIViewControllerTransitioningDelegate {
 }
 
 extension ActionSheet2ViewController: UIGestureRecognizerDelegate {
+    /// disable gesture recognizer when the action sheet position is complete or the user asks to disable pan gesture in the inner view or when the dismiss gesture is caught inside the action view
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         let isTouchInInnerView = touch.view?.isDescendant(of: innerView) ?? false
         let isTouchInTopView = touch.view?.isDescendant(of: topView) ?? false
         
-        let disablePanInInnerView = gestureRecognizer == innerViewPanRecognizer && isTouchInInnerView && shouldDisablePanGestureInInnerView
-        let disableGestureForPositionComplete = currentActionSheetPosition == .complete
-        let disableDismissInsideInnerView = gestureRecognizer == dismissGesture && (isTouchInInnerView || isTouchInTopView)
+        let isDismissGesture = !isTouchInInnerView && !isTouchInTopView && gestureRecognizer.isKind(of: UITapGestureRecognizer.self)
+        let isPanGestureInsideInnerView = isTouchInInnerView && gestureRecognizer.isKind(of: UIPanGestureRecognizer.self)
         
+        let disablePanGesture = isPanGestureInsideInnerView && shouldDisablePanGestureInInnerView
+        let disableGesturesForPositionComplete = currentActionSheetPosition == .complete && (isTouchInInnerView || isTouchInTopView)
+        let disableDismissGesture = !isDismissGesture && gestureRecognizer == dismissGesture
         
-        if  disablePanInInnerView || disableGestureForPositionComplete || disableDismissInsideInnerView {
+        if disablePanGesture || disableGesturesForPositionComplete || disableDismissGesture {
             return false
         }
         return true
-
+    }
+    
+    /// disable the scroll when the action sheet position is complete or partially visible or fullScreen and the user is dragging the scroll view down
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        if let scrollView = scrollView, gestureRecognizer.isKind(of: UIPanGestureRecognizer.self) {
+            let gesture = gestureRecognizer as! UIPanGestureRecognizer
+            let isDraggingDown = gesture.velocity(in: view).y > 0
+            
+            if currentActionSheetPosition == .partiallyRevealed || (currentActionSheetPosition == .fullScreen && isDraggingDown && scrollView.contentOffset.y == 0) {
+                scrollView.isScrollEnabled = false
+            } else {
+                scrollView.isScrollEnabled = true
+            }
+        }
+        return false
     }
 }
 
