@@ -8,13 +8,12 @@
 
 import UIKit
 
-class TestBackgroundViewController: ActionSheetBackgroundViewController {
+class TestBackgroundViewController: UIViewController {
 
     private var listCell: [TestActionSheetTableViewCell] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        delegate = self
     }
     
     @IBAction func buttonTapped(_ sender: Any) {
@@ -26,7 +25,10 @@ class TestBackgroundViewController: ActionSheetBackgroundViewController {
             i += 1
         }
 //        ActionSheet2ViewController().start(on: self)
-        ActionSheetTableViewController().start(on: self)
+        if let vc = ActionSheetTableViewController(on: self) {
+            vc.delegate = self
+            present(vc, animated: true, completion: nil)
+        }
     }
 }
 
@@ -42,12 +44,12 @@ extension TestBackgroundViewController: UITableViewDataSource {
     }
 }
 
-extension TestBackgroundViewController: ActionSheetBackgroundDelegate {
-    func actionSheetBackgroundGetNumberOfCells(_ tableView: UITableView) -> Int {
-        return listCell.count
+extension TestBackgroundViewController: ActionSheetTableViewControllerDelegate {
+    func actionSheetTableViewControllerRegisterCellsForTableView(_ actionSheetTableViewController: UIViewController, tableView: UITableView) {
+        tableView.register(UINib(nibName: "TestActionSheetTableViewCell", bundle: nil), forCellReuseIdentifier: "TestActionSheetTableViewCell")
     }
     
-    func actionSheetBackgroundRegisterCellsForTableView(_ tableView: UITableView) {
-        tableView.register(UINib(nibName: "TestActionSheetTableViewCell", bundle: nil), forCellReuseIdentifier: "TestActionSheetTableViewCell")
+    func actionSheetTableViewControllerGetNumberOfCells(_ actionSheetTableViewController: UIViewController) -> Int {
+        return listCell.count
     }
 }

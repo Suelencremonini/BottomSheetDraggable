@@ -8,26 +8,35 @@
 
 import UIKit
 
+protocol ActionSheetTableViewControllerDelegate: AnyObject {
+    func actionSheetTableViewControllerRegisterCellsForTableView(_ actionSheetTableViewController: UIViewController, tableView: UITableView)
+    func actionSheetTableViewControllerGetNumberOfCells(_ actionSheetTableViewController: UIViewController) -> Int
+}
+
 class ActionSheetTableViewController: ActionSheet2ViewController {
 
+    weak var delegate: ActionSheetTableViewControllerDelegate?
+    
     private var tableView = UITableView()
     private var heightForActionSheet: CGFloat = 0
     private var reloadedSuperView = false
+    private var tableViewLoaded = false
     private var numberOfCells = 0
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         setupTableView()
-        currentActionSheetPosition = numberOfCells > 3 ? .partiallyRevealed : .complete
+        setupActionSheetTableViewControllerDelegate()
         
         innerViewPanRecognizer.delegate = self
-        innerViewTapRecognizer.delegate = self
+        
+        currentActionSheetPosition = numberOfCells > 3 ? .partiallyRevealed : .complete
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         if !reloadedSuperView && heightForActionSheet != 0 {
+            tableViewLoaded = true
             reloadedSuperView = true
             resizeInnerViewHeight()
         }
@@ -50,9 +59,11 @@ private extension ActionSheetTableViewController {
         
         tableView.dataSource = backgroundViewController as? UITableViewDataSource
         tableView.delegate = self
-        
-        backgroundViewController.delegate?.actionSheetBackgroundRegisterCellsForTableView(tableView)
-        numberOfCells = backgroundViewController.delegate?.actionSheetBackgroundGetNumberOfCells(tableView) ?? 0
+    }
+    
+    func setupActionSheetTableViewControllerDelegate() {
+        delegate?.actionSheetTableViewControllerRegisterCellsForTableView(self, tableView: tableView)
+        numberOfCells = delegate?.actionSheetTableViewControllerGetNumberOfCells(self) ?? 0
     }
     
     func setTableViewConstraints() {
@@ -66,14 +77,16 @@ private extension ActionSheetTableViewController {
 
 extension ActionSheetTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        if numberOfCells > 3 {
-            if indexPath.row < 2 {
-                 heightForActionSheet += cell.bounds.height
-            } else if indexPath.row == 2 {
-                 heightForActionSheet += cell.bounds.height/2
+        if !tableViewLoaded {
+            if numberOfCells > 3 {
+                if indexPath.row < 2 {
+                     heightForActionSheet += cell.bounds.height
+                } else if indexPath.row == 2 {
+                     heightForActionSheet += cell.bounds.height/2
+                }
+            } else {
+                heightForActionSheet += cell.bounds.height
             }
-        } else {
-            heightForActionSheet += cell.bounds.height
         }
     }
     
@@ -97,21 +110,4 @@ extension ActionSheetTableViewController {
         }
         return false
     }
-    
-//    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-//        let isTouchInInnerView = touch.view?.isDescendant(of: innerView) ?? false
-//
-//        let isPanGestureRecognizer = gestureRecognizer.isKind(of: UIPanGestureRecognizer.self)
-//        let isTapGestureRecognizer = gestureRecognizer.isKind(of: UITapGestureRecognizer.self)
-//
-//        let disablePanInInnerView = isPanGestureRecognizer && isTouchInInnerView //&& shouldDisablePanGestureInInnerView
-//        let disableTapInInnerView = isTapGestureRecognizer && isTouchInInnerView //&& shouldDisableTapGestureInInnerView
-//
-//        let disableGestureForPositionComplete = currentActionSheetPosition == .complete
-//
-//        if  disablePanInInnerView || disableTapInInnerView || disableGestureForPositionComplete {
-//            return false
-//        }
-//        return true
-//    }
 }
