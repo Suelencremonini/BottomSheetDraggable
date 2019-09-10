@@ -28,6 +28,11 @@ enum ActionSheetPosition2 {
     }
 }
 
+enum AnimationDuration: Double {
+    case presenting = 1.0
+    case dismissing = 0.3
+}
+
 class ActionSheet2ViewController: UIViewController {
     
     var backgroundViewController: UIViewController!
@@ -54,7 +59,6 @@ class ActionSheet2ViewController: UIViewController {
     private let innerViewPanGesture = UIPanGestureRecognizer()
     
     private var panGestureAnimator: UIViewPropertyAnimator!
-    private var transition: ActionSheetAnimatedTransitioning!
     private var innerViewHeightConstraint: NSLayoutConstraint!
     
     required init?(on backgroundViewController: UIViewController) {
@@ -64,7 +68,6 @@ class ActionSheet2ViewController: UIViewController {
         setupActionSheetView()
         setupTopView()
         setupInnerView()
-        setupTransition()
         setupPresent()
         setupDismiss()
     }
@@ -108,6 +111,9 @@ private extension ActionSheet2ViewController {
     
     func setupPresent() {
         modalPresentationStyle = .overFullScreen
+        UIView.animate(withDuration: AnimationDuration.presenting.rawValue) {
+            self.backgroundViewController.view.alpha = 0.5
+        }
     }
     
     func setupDismiss() {
@@ -127,18 +133,19 @@ private extension ActionSheet2ViewController {
     }
     
     func setupDismissGestures(_ dismissView: UIView) {
-        dismissGesture.delegate = self
         dismissGesture.addTarget(self, action: #selector(dismissActionSheet(recognizer:)))
         dismissView.addGestureRecognizer(dismissGesture)
     }
     
     @objc func dismissActionSheet(recognizer: UIPanGestureRecognizer) {
-        dismiss(animated: true, completion: nil)
-    }
-    
-    func setupTransition() {
-        transitioningDelegate = self
-        transition = ActionSheetAnimatedTransitioning(dimmedView: backgroundViewController.view)
+        let actionSheetFrame = actionSheetView.frame
+        
+        UIView.animate(withDuration: AnimationDuration.dismissing.rawValue, animations: {
+            self.actionSheetView.frame = CGRect(x: actionSheetFrame.origin.x, y: UIScreen.main.bounds.maxY, width: actionSheetFrame.width, height: 0)
+            self.backgroundViewController.view.alpha = 1.0
+        }) { _ in
+            self.dismiss(animated: false, completion: nil)
+        }
     }
     
     func setupActionSheetView() {
@@ -232,7 +239,7 @@ private extension ActionSheet2ViewController {
     func animateTransitionIfNeeded() {
         let state = currentActionSheetPosition.nextPosition
         
-        panGestureAnimator = UIViewPropertyAnimator(duration: 1, dampingRatio: 1, animations: {
+        panGestureAnimator = UIViewPropertyAnimator(duration: AnimationDuration.presenting.rawValue, dampingRatio: 1, animations: {
             //add animation based on the action sheet position. The targeted height is the height of the next position
             switch state {
             case .partiallyRevealed:
@@ -244,7 +251,7 @@ private extension ActionSheet2ViewController {
             }
             self.view.layoutIfNeeded()
         })
-        
+
         panGestureAnimator.addCompletion { animationStatus in
             self.panGestureAnimatorCompletion(animationStatus: animationStatus, state: state)
         }
@@ -324,19 +331,7 @@ private extension ActionSheet2ViewController {
                 break
             }
         }
-        
         panGestureAnimator.continueAnimation(withTimingParameters: nil, durationFactor: 0)
-    }
-}
-
-// MARK: - UIViewControllerTransitioningDelegate - Delegate responsible for calling the custom transitions to present and to dismiss the action sheet
-extension ActionSheet2ViewController: UIViewControllerTransitioningDelegate {
-    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        return transition
-    }
-
-    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        return transition
     }
 }
 
@@ -345,15 +340,12 @@ extension ActionSheet2ViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         let isTouchInInnerView = touch.view?.isDescendant(of: innerView) ?? false
         let isTouchInTopView = touch.view?.isDescendant(of: topView) ?? false
-        
-        let isDismissGesture = !isTouchInInnerView && !isTouchInTopView && gestureRecognizer.isKind(of: UITapGestureRecognizer.self)
         let isPanGestureInsideInnerView = isTouchInInnerView && gestureRecognizer.isKind(of: UIPanGestureRecognizer.self)
         
         let disablePanGesture = isPanGestureInsideInnerView && shouldDisablePanGestureInInnerView
         let disableGesturesForPositionComplete = currentActionSheetPosition == .complete && (isTouchInInnerView || isTouchInTopView)
-        let disableDismissGesture = !isDismissGesture && gestureRecognizer == dismissGesture
         
-        if disablePanGesture || disableGesturesForPositionComplete || disableDismissGesture {
+        if disablePanGesture || disableGesturesForPositionComplete {
             return false
         }
         return true
