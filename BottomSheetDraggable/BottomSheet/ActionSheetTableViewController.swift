@@ -38,7 +38,7 @@ class ActionSheetTableViewController: ActionSheet2ViewController {
             currentActionSheetPosition = .partiallyRevealed
             heightForActionSheet = (tableView.contentSize.height/CGFloat(numberOfCells))*2.5
         } else {
-            currentActionSheetPosition = .fullScreen
+            currentActionSheetPosition = .complete
             heightForActionSheet = tableView.contentSize.height
         }
         presentAnimateView()

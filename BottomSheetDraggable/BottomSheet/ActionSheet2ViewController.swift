@@ -111,9 +111,25 @@ private extension ActionSheet2ViewController {
     }
     
     func setupDismiss() {
+        let dismissView = UIView()
+        view.addSubview(dismissView)
+        dismissView.backgroundColor = .clear
+        setupDismissConstraints(dismissView)
+        setupDismissGestures(dismissView)
+    }
+    
+    func setupDismissConstraints(_ dismissView: UIView) {
+        dismissView.translatesAutoresizingMaskIntoConstraints = false
+        dismissView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        dismissView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        dismissView.bottomAnchor.constraint(equalTo: actionSheetView.topAnchor).isActive = true
+        dismissView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+    }
+    
+    func setupDismissGestures(_ dismissView: UIView) {
         dismissGesture.delegate = self
         dismissGesture.addTarget(self, action: #selector(dismissActionSheet(recognizer:)))
-        view.addGestureRecognizer(dismissGesture)
+        dismissView.addGestureRecognizer(dismissGesture)
     }
     
     @objc func dismissActionSheet(recognizer: UIPanGestureRecognizer) {
@@ -236,6 +252,10 @@ private extension ActionSheet2ViewController {
     }
     
     func panGestureAnimatorCompletion(animationStatus: UIViewAnimatingPosition, state: ActionSheetPosition2) {
+        if let scrollView = scrollView {
+            scrollView.isScrollEnabled = true
+        }
+        
         //When the animation ends, sets the current position of the action sheet to the next state
         if animationStatus == .end {
             self.currentActionSheetPosition = state
@@ -293,7 +313,7 @@ private extension ActionSheet2ViewController {
         //the velocity is bigger than 0 when the user is dragging the view
         if yVelocity != 0 {
             let isDraggingDown = yVelocity > 0
-            
+
             // reverse the animations based on the dragging direction
             switch currentActionSheetPosition {
             case .partiallyRevealed:
@@ -339,12 +359,12 @@ extension ActionSheet2ViewController: UIGestureRecognizerDelegate {
         return true
     }
     
-    /// disable the scroll when the action sheet position is complete or partially visible or fullScreen and the user is dragging the scroll view down
+    /// disable the scroll when the action sheet position is complete, partially visible or in fullScreen and the user is dragging the scroll view down
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         if let scrollView = scrollView, gestureRecognizer.isKind(of: UIPanGestureRecognizer.self) {
             let gesture = gestureRecognizer as! UIPanGestureRecognizer
             let isDraggingDown = gesture.velocity(in: view).y > 0
-            
+
             if currentActionSheetPosition == .partiallyRevealed || (currentActionSheetPosition == .fullScreen && isDraggingDown && scrollView.contentOffset.y == 0) {
                 scrollView.isScrollEnabled = false
             } else {

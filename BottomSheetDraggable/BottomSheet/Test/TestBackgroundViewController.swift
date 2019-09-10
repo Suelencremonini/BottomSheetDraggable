@@ -19,7 +19,7 @@ class TestBackgroundViewController: UIViewController {
     @IBAction func buttonTapped(_ sender: Any) {
         var i = 0
         listCell = []
-        while i < 30 {
+        while i < 3 {
             let cell = TestActionSheetTableViewCell()
             listCell.append(cell)
             i += 1
